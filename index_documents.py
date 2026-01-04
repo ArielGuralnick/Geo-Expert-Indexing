@@ -5,18 +5,23 @@ from dotenv import load_dotenv
 from pypdf import PdfReader
 from docx import Document
 
-# טעינת משתני סביבה מהקובץ .env
+# Load environment variables from the .env file
 load_dotenv()
 
-# שליפת המפתחות
+# Retrieving the keys
 DB_URL = os.getenv("POSTGRES_URL")
 GOOGLE_API_KEY = os.getenv("GEMINI_API_KEY")
 
-# הגדרת ה-AI
+# Check if keys are loaded correctly
+if not DB_URL or not GOOGLE_API_KEY:
+    print("Error: Keys not found. Make sure .env file exists and contains POSTGRES_URL and GEMINI_API_KEY.")
+    exit()
+
+# Configuring the AI
 genai.configure(api_key=GOOGLE_API_KEY)
 
+# Reads the content of a PDF or DOCX file and returns the raw text string
 def extract_text_from_file(file_path):
-    # זיהוי סוג קובץ וחילוץ טקסט
     ext = os.path.splitext(file_path)[1].lower()
     text = ""
     try:
@@ -33,8 +38,9 @@ def extract_text_from_file(file_path):
         print(f"Error reading file: {e}")
         return None
 
+# Splits the long text into smaller segments (chunks) with a specific overlap
 def chunk_text(text, chunk_size=1000, overlap=200):
-    #  חלוקה לפי fix size
+    # Splitting by fix size
     chunks = []
     start = 0
     while start < len(text):
@@ -43,6 +49,7 @@ def chunk_text(text, chunk_size=1000, overlap=200):
         start += (chunk_size - overlap)
     return chunks
 
+# Generates a vector embedding for the given text using Google's Gemini model
 def get_embedding(text):
     try:
         result = genai.embed_content(
@@ -55,8 +62,9 @@ def get_embedding(text):
         print(f"Embedding Error: {e}")
         return None
 
+# Saves the text chunks and their corresponding embeddings into the Postgres database
 def save_to_db(chunks, embeddings, filename):
-    # שמירה למסד הנתונים בענן
+    # Saving to Neon database
     try:
         conn = psycopg2.connect(DB_URL)
         cur = conn.cursor()
@@ -67,7 +75,7 @@ def save_to_db(chunks, embeddings, filename):
         """
         
         for chunk, vector in zip(chunks, embeddings):
-            # שימוש ב-list(vector) כדי לוודא תאימות
+            # Using list(vector) to ensure compatibility
             cur.execute(insert_query, (chunk, list(vector), filename, 'fixed-size'))
             
         conn.commit()
@@ -77,7 +85,7 @@ def save_to_db(chunks, embeddings, filename):
     except Exception as e:
         print(f"Database Error: {e}")
 
-# Run
+# Main execution block
 if __name__ == "__main__":
     file_name = "Warranty_Certificate.pdf" 
     

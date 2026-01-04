@@ -1,31 +1,48 @@
 # Geo-Expert Document Indexing Module
 
-מודול פייתון שפותח כחלק ממטלת בית עבור Geo Mobility. הסקריפט מבצע תהליך מלא של עיבוד מסמכי רכב (PDF/DOCX), לבינתיים נטען קובץ תעודת אחריות, חלוקתם למקטעים, יצירת Embeddings בעזרת Gemini API ושמירתם במסד נתונים PostgreSQL.
+A Python module developed as part of a home assignment for Jeen.ai.
+The script performs a complete processing cycle for vehicle documents (supporting PDF/DOCX). Currently, it processes a warranty certificate by extracting text, splitting it into segments (chunking), generating embeddings using the **Gemini API**, and storing them in a **PostgreSQL** database.
 
-## דרישות מערכת
+## Prerequisites
 
 - Python 3.9+
-- מסד נתונים PostgreSQL (מומלץ Neon.tech)
-- Gemini API Key
+- PostgreSQL Database (Neon.tech recommended)
+- Google Gemini API Key
 
-## התקנה
+## Installation
 
-1. שכפל את המאגר (Clone):
-   ```bash
-   git clone [https://github.com/ArielGuralnick/Geo-Expert-Indexing]
-   ```
-2. התקן את הספריות הנדרשות :
-   pip install google-generativeai psycopg2-binary python-dotenv pypdf python-docx cryptography
+1.  **Clone the repository:**
 
-3. הגדר משתני סביבה: צור קובץ .env בתיקייה הראשית והזן את הפרטים הבאים:
-   GEMINI_API_KEY: המפתח שקיבלת מ-Google AI Studio.
-   POSTGRES_URL: כתובת החיבור למסד הנתונים שלך.
+    ```bash
+    git clone [https://github.com/ArielGuralnick/Geo-Expert-Indexing](https://github.com/ArielGuralnick/Geo-Expert-Indexing)
+    ```
 
-## שימוש
+2.  **Install required packages:**
 
-להרצת תהליך האינדוקס, וודא שיש קובץ בשם Warranty_Certificate.pdf בתיקייה והרד:
+    ```bash
+    pip install google-generativeai psycopg2-binary python-dotenv pypdf python-docx cryptography
+    ```
+
+3.  **Configuration (Security & Environment Variables):**
+
+    > **Note:** For security reasons, API keys are not stored in the repository.
+
+    To run this project, you need to set up your own environment variables:
+
+    1.  Locate the `.env.example` file in the root directory.
+    2.  Create a copy of this file and name it `.env` (this file is git-ignored).
+    3.  Open the new `.env` file and fill in your credentials:
+        - `GEMINI_API_KEY`: Your API key from Google AI Studio.
+        - `POSTGRES_URL`: Your connection string for the PostgreSQL database.
+
+## Usage
+
+To run the indexing process, ensure a file named `Warranty_Certificate.pdf` exists in the project folder, then execute:
+
+```bash
 python index_documents.py
+```
 
-## אסטרטגיית Chunking
+## Chunking Strategy
 
-בפרויקט זה נעשה שימוש בשיטת Fixed-size with overlap (גודל קבוע עם חפיפה) כדי להבטיח רציפות בהקשר הסמנטי בין המקטעים השונים
+This project utilizes a Fixed-size with overlap strategy. This ensures semantic continuity between different text segments and improves retrieval accuracy by maintaining context across chunk boundaries.
